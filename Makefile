@@ -41,17 +41,17 @@ $(LIBDIR):
 $(INCDIR):
 	mkdir -p $(INCDIR)
 
-trjfort.o: varpars.o xyz.o xdr.o
+$(SRCDIR)/trjfort.o: $(addprefix $(SRCDIR)/, varpars.o xyz.o xdr.o)
 
-xyz.o: varpars.o
+$(SRCDIR)/xyz.o: $(SRCDIR)/varpars.o
 
-xdr.o: varpars.o
+$(SRCDIR)/xdr.o: $(SRCDIR)/varpars.o
 
 # =========================
-test: $(LIB_TRJFORT) $(TESTBINS)
+test: $(TESTBINS)
 	cd $(TESTDIR) && ./$(TEST1)
 
-$(TESTDIR)/$(TEST1): $(TESTOBJS)
+$(TESTDIR)/$(TEST1): $(LIB_TRJFORT) $(TESTOBJS)
 	$(FC) $(FCFLAGS) $^ -o $@ -L$(LIBDIR) -l$(LIBNAME)
 
 # =========================
@@ -61,5 +61,5 @@ $(TESTDIR)/$(TEST1): $(TESTOBJS)
 # =========================
 clean:
 	rm -rf $(INCDIR) $(LIBDIR) $(OBJS) $(SRCDIR)/*.mod
-	rm -rf $(TESTBINS) $(TESTOBJS) $(TESTDIR)/*.mod
+	rm -rf $(TESTBINS) $(TESTOBJS) $(TESTDIR)/*.mod $(TESTDIR)/*.xyz
 

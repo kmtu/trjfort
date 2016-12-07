@@ -1,20 +1,18 @@
 module xyz
-    use varpars, only: rk, filename_len, line_len, dimn, mode_read, mode_write
+    use varpars, only: rk, filename_len, line_len, dimn, mode_read,&
+                      &mode_write
 
     implicit none
     private
     integer, parameter :: info_len = line_len
     integer, parameter :: atom_name_len = 10
-    character(len=*), parameter :: format_begin = "(A, 3F", &
-                                  &format_end = ")", format_r = "F"
 
     type, public :: xyzfile
         character(len=filename_len) :: file
         integer :: unit
         character :: mode
-        integer :: natoms, step, stat
+        integer :: natoms, stat
         character(len=info_len) :: info
-        real(rk) :: box(dimn, dimn)
         real(rk), allocatable :: pos(:, :)
         real(rk), allocatable :: optdata(:, :)  ! (:, natoms)
         character(len=atom_name_len), allocatable :: atom_name(:)
@@ -41,13 +39,16 @@ contains
             this%mode = mode_read
         end if
 
-        if (this%mode == mode_read) then
+        select case (this%mode)
+        case (mode_read)
             this%natoms = read_natoms_xyz(file)
             call open_xyz(this%unit, file=file, status='old', iostat=this%stat)
             allocate(this%pos(dimn, this%natoms))
             allocate(this%atom_name(this%natoms))
             if (present(optdata_dim)) allocate(this%optdata(optdata_dim, this%natoms))
-        end if
+        case (mode_write)
+            call open_xyz(this%unit, file=file, status='unknown', iostat=this%stat)
+        end select
     end subroutine
 
     subroutine read(this)
@@ -55,15 +56,16 @@ contains
         class(xyzfile), intent(inout) :: this
 
         if (allocated(this%optdata)) then
-            call read_xyz(this%unit, this%pos, this%natoms, this%info, this%atom_name, this%optdata)
+            call read_xyz(this%unit, this%pos, this%natoms, this%info, this%atom_name, this%stat, this%optdata)
         else
-            call read_xyz(this%unit, this%pos, this%natoms, this%info, this%atom_name)
+            call read_xyz(this%unit, this%pos, this%natoms, this%info, this%atom_name, this%stat)
         end if
     end subroutine
 
     subroutine write(this, pos, info, atom_name, optdata)
+        use varpars, only: num2str
         implicit none
-        class(xyzfile), intent(in) :: this
+        class(xyzfile), intent(inout) :: this
         real(rk), intent(in) :: pos(:, :)  !(3, natoms)
         character(len=*), intent(in), optional :: info, atom_name(:)
         real(rk), intent(in), optional :: optdata(:, :)  ! (:, natoms)
@@ -72,6 +74,15 @@ contains
         character(len=atom_name_len) :: atom_name_(size(pos, 2))
         character(len=line_len) :: format_opt, optdata_dim_c, format
         integer :: i, unit
+        character(len=*), parameter :: format_end = ")"
+        character(len=line_len) :: format_begin
+#ifdef USE_DOUBLE
+        character(len=*), parameter :: format_rk = "F22.16"
+#else
+        character(len=*), parameter :: format_rk = "F13.7"
+#endif
+
+        format_begin = "(A, "//trim(num2str(dimn))//format_rk
 
         unit = this%unit
         natoms = size(pos, 2)
@@ -93,15 +104,15 @@ contains
 
         if (present(optdata)) then
             write(optdata_dim_c, *) size(optdata, 1)
-            format_opt = ", " // trim(adjustl(optdata_dim_c)) // format_r
-            format = format_begin // trim(format_opt) // format_end
+            format_opt = ", " // trim(adjustl(optdata_dim_c)) // format_rk
+            format = trim(format_begin) // trim(format_opt) // format_end
             do i = 1, natoms
-            write(unit, format) trim(atom_name_(i)), pos(:, i), optdata(:, i)
+                write(unit, format, iostat=this%stat) trim(atom_name_(i)), pos(:, i), optdata(:, i)
             end do
         else
-            format = format_begin // format_end
+            format = trim(format_begin) // format_end
             do i = 1, natoms
-            write(unit, format) trim(atom_name_(i)), pos(:, i)
+                write(unit, format, iostat=this%stat) trim(atom_name_(i)), pos(:, i)
             end do
         end if
     end subroutine
@@ -147,15 +158,14 @@ contains
         end if
     end subroutine
 
-    subroutine read_xyz(unit, pos, natoms, info, atom_name, optdata)
+    subroutine read_xyz(unit, pos, natoms, info, atom_name, iostat, optdata)
         implicit none
         integer, intent(in) :: unit
         real(rk), intent(out) :: pos(:, :)  !(3, natoms)
         integer, intent(out) :: natoms
         character(len=*), intent(out) :: info, atom_name(:)
+        integer, intent(out) :: iostat
         real(rk), intent(out), optional :: optdata(:, :)  ! (:, natoms)
-        character(len=info_len) :: info_
-        character(len=atom_name_len) :: atom_name_(size(pos, 2))
         integer :: i
 
         read(unit, *) natoms
@@ -163,61 +173,11 @@ contains
 
         if (present(optdata)) then
             do i = 1, natoms
-            read(unit, *) atom_name(i), pos(:, i), optdata(:, i)
+            read(unit, *, iostat=iostat) atom_name(i), pos(:, i), optdata(:, i)
             end do
         else
             do i = 1, natoms
-            read(unit, *) atom_name(i), pos(:, i)
-            end do
-        end if
-    end subroutine
-
-    subroutine write_xyz(unit, pos, natoms, info, atom_name, optdata)
-        implicit none
-        integer, intent(in) :: unit
-        real(rk), intent(in) :: pos(:, :)  !(3, natoms)
-        integer, intent(in), optional :: natoms
-        character(len=*), intent(in), optional :: info, atom_name(:)
-        real(rk), intent(in), optional :: optdata(:, :)  ! (:, natoms)
-        integer :: natoms_
-        character(len=info_len) :: info_
-        character(len=atom_name_len) :: atom_name_(size(pos, 2))
-        character(len=line_len) :: format_opt, optdata_dim_c, format
-        integer :: i
-
-        natoms_ = size(pos, 2)
-        if (present(natoms)) then
-            if (natoms /= natoms_) then
-                stop "natoms is not consistent with pos"
-            end if
-        end if
-
-        if (present(info)) then
-            info_ = info
-        else
-            info_ = "XYZ"
-        end if
-
-        if (present(atom_name)) then
-            atom_name_ = atom_name
-        else
-            atom_name_ = "X"
-        end if
-
-        write(unit, *) natoms_
-        write(unit, "(A)") trim(info_)
-
-        if (present(optdata)) then
-            write(optdata_dim_c, *) size(optdata, 1)
-            format_opt = ", " // trim(adjustl(optdata_dim_c)) // format_r
-            format = format_begin // trim(format_opt) // format_end
-            do i = 1, natoms_
-            write(unit, format) trim(atom_name_(i)), pos(:, i), optdata(:, i)
-            end do
-        else
-            format = format_begin // format_end
-            do i = 1, natoms_
-            write(unit, format) trim(atom_name_(i)), pos(:, i)
+            read(unit, *, iostat=iostat) atom_name(i), pos(:, i)
             end do
         end if
     end subroutine
@@ -231,11 +191,11 @@ contains
         integer, parameter :: nmin=10   ! avoid lower numbers which are sometimes reserved
         integer, parameter :: nmax=999  ! may be system-dependent
         do n = nmin, nmax
-        inquire(unit=n, opened=inuse)
-        if (.not. inuse) then
-            if (present(unit)) unit=n
-            return
-        end if
+            inquire(unit=n, opened=inuse)
+            if (.not. inuse) then
+                if (present(unit)) unit=n
+                return
+            end if
         end do
         stop "newunit ERROR: available unit not found."
     end function

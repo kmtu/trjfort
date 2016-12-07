@@ -25,4 +25,25 @@ module varpars
 
     character(len=*), parameter :: mode_read = 'r'
     character(len=*), parameter :: mode_write = 'w'
+
+    interface num2str
+        module procedure int2str, real2str
+    end interface
+
+contains
+    function int2str(i) result(str)
+        implicit none
+        character(len=line_len) :: str
+        integer, intent(in) :: i
+
+        write(str, *) i
+    end function
+
+    function real2str(r) result(str)
+        implicit none
+        character(len=line_len) :: str
+        real(rk), intent(in) :: r
+
+        write(str, *) r
+    end function
 end module

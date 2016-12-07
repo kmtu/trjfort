@@ -19,6 +19,7 @@
 # Fortran module files
 *.mod
 *.smod
+fort.*
 
 # Compiled Static libraries
 *.lai
