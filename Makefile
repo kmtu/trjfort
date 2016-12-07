@@ -8,7 +8,7 @@ INCDIR = include
 TESTDIR = test
 
 MODFLAG = -J
-FCFLAGS ?= $(MODFLAG)$(INCDIR) -fdefault-real-8 -g -Wall
+FCFLAGS ?= $(MODFLAG)$(INCDIR) -g -Wall -DUSE_DOUBLE
 
 LIBNAME = trjfort
 LIB_TRJFORT := $(addsuffix .a, $(addprefix lib, $(LIBNAME)))
