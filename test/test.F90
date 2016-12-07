@@ -4,7 +4,6 @@ program test
     integer, parameter :: line_len = 1024
     call test_xyzfile_read_natoms
     call test_xyzfile_read
-    !call test_xyzfile_write
 
 contains
     subroutine test_xyzfile_read_natoms()
@@ -13,7 +12,7 @@ contains
         type(xyzfile) :: f
         character(len=*), parameter :: name = "xyzfile_read_natoms"
 
-        call f%open('test.xyz', 'r')
+        call f%init('test.xyz', 'r')
         call assert(f%natoms == 3, name)
         call f%close
     end subroutine
@@ -25,7 +24,7 @@ contains
         character(len=*), parameter :: name = "xyzfile_read"
         character(len=line_len) :: tmp_str
 
-        call f%open('test.xyz', 'r')
+        call f%init('test.xyz', 'r')
         call f%read
         call assert(trim(f%info) == "info line", name//" - info", "info: "//f%info)
 

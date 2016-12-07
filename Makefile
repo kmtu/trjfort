@@ -14,7 +14,7 @@ LIBNAME = trjfort
 LIB_TRJFORT := $(addsuffix .a, $(addprefix lib, $(LIBNAME)))
 LIB_TRJFORT := $(addprefix $(LIBDIR)/, $(LIB_TRJFORT))
 
-OBJS = trjfile.o xyzfile.o trjfort.o 
+OBJS = varpars.o xyz.o xdr.o trjfort.o 
 OBJS := $(addprefix $(SRCDIR)/, $(OBJS))
 
 TEST1 = test1.out
@@ -41,9 +41,11 @@ $(LIBDIR):
 $(INCDIR):
 	mkdir -p $(INCDIR)
 
-trjfort.o: trjfile.o xyzfile.o
+trjfort.o: varpars.o xyz.o xdr.o
 
-xyzfile.o: trjfile.o
+xyz.o: varpars.o
+
+xdr.o: varpars.o
 
 # =========================
 test: $(LIB_TRJFORT) $(TESTBINS)
