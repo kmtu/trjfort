@@ -9,6 +9,8 @@ TESTDIR = test
 
 MODFLAG = -J
 FCFLAGS ?= $(MODFLAG)$(INCDIR) -g -Wall -DUSE_DOUBLE
+LDFLAGS ?= -L$(HOME)/local/xdrfile/lib
+LIBS ?= -lxdrfile
 
 LIBNAME = trjfort
 LIB_TRJFORT := $(addsuffix .a, $(addprefix lib, $(LIBNAME)))
@@ -52,7 +54,7 @@ test: $(TESTBINS)
 	cd $(TESTDIR) && ./$(TEST1)
 
 $(TESTDIR)/$(TEST1): $(LIB_TRJFORT) $(TESTOBJS)
-	$(FC) $(FCFLAGS) $^ -o $@ -L$(LIBDIR) -l$(LIBNAME)
+	$(FC) $(FCFLAGS) $^ -o $@ -L$(LIBDIR) -l$(LIBNAME) $(LDFLAGS) $(LIBS)
 
 # =========================
 %.o : %.F90
@@ -61,5 +63,5 @@ $(TESTDIR)/$(TEST1): $(LIB_TRJFORT) $(TESTOBJS)
 # =========================
 clean:
 	rm -rf $(INCDIR) $(LIBDIR) $(OBJS) $(SRCDIR)/*.mod
-	rm -rf $(TESTBINS) $(TESTOBJS) $(TESTDIR)/*.mod $(TESTDIR)/*.xyz
+	rm -rf $(TESTBINS) $(TESTOBJS) $(TESTDIR)/*.mod $(TESTDIR)/*.xyz $(TESTDIR)/*.trr
 

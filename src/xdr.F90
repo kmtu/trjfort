@@ -118,7 +118,8 @@ module xdr
             type(xdrfile), intent(in) :: xd
             integer(c_int), intent(in), value :: natoms
             integer(c_int), intent(out) :: step
-            real(c_rk), intent(out) :: time, lambda, box(*), x(*), v(*), f(*)
+            real(c_rk), intent(out) :: time, lambda
+            real(c_rk), intent(out), optional :: box(*), x(*), v(*), f(*)
         end function
 
         integer(c_int) function write_trr(xd, natoms, step, time, lambda, box, x, v, f) bind(c)
@@ -126,7 +127,7 @@ module xdr
             type(xdrfile), intent(in) :: xd
             integer(c_int), intent(in), value :: natoms, step
             real(c_rk), intent(in), value :: time, lambda
-            real(c_rk), intent(in) :: box(*), x(*), v(*), f(*)
+            real(c_rk), intent(in), optional :: box(*), x(*), v(*), f(*)
         end function
 
     end interface
@@ -156,7 +157,7 @@ contains
         if (this%mode == mode_read) then
             inquire(file=trim(filename_in), exist=ex)
 
-            if (ex) then
+            if (.not. ex) then
                 write(error_unit, *)
                 write(error_unit, '(a)') " error: "//trim(filename_in)//" does not exist."
                 write(error_unit, *)
@@ -227,7 +228,8 @@ contains
         implicit none
         class(trrfile), intent(inout) :: trr
         integer, intent(in) :: natoms, step
-        real(rk), intent(in) :: time, lambda, box(dimn, dimn), pos(*), vel(*), frc(*)
+        real(rk), intent(in) :: time, lambda
+        real(rk), intent(in), optional :: box(dimn, dimn), pos(*), vel(*), frc(*)
 
         trr%stat = write_trr(trr%xd, natoms, step, time, lambda, box, pos, vel, frc)
     end subroutine

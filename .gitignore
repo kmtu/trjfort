@@ -36,4 +36,5 @@ fort.*
 *.swp
 *~
 
-*.xyz
+test/*.xyz
+test/*.trr
