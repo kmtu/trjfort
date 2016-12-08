@@ -77,12 +77,12 @@ contains
     end subroutine
 
     subroutine test_xyzfile_write()
-        use trjfort, only: xyzfile, mode_read
+        use trjfort, only: xyzfile, mode_write
         implicit none
         type(xyzfile) :: f
         character(len=*), parameter :: name = "xyzfile_write"
 
-        call f%open(xyz_testfile, 'w')
+        call f%open(xyz_testfile, mode_write)
         call f%write(pos)
         call assert(f%stat == 0, name, "f%stat = "//trim(num2str(f%stat)))
         call f%close
@@ -120,12 +120,12 @@ contains
 
     subroutine test_xyzfile_write2()
         use varpars, only: dimn
-        use trjfort, only: xyzfile, mode_read
+        use trjfort, only: xyzfile, mode_write
         implicit none
         type(xyzfile) :: f
         character(len=*), parameter :: name = "xyzfile_write2"
 
-        call f%open(xyz_testfile, 'w')
+        call f%open(xyz_testfile, mode_write)
         call f%write(pos, info=info, atom_name=atom_name,&
                     &optdata=optdata)
         call assert(f%stat == 0, name, "f%stat = "//trim(num2str(f%stat)))
