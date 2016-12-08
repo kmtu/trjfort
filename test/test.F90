@@ -4,8 +4,8 @@ program test
     character(len=*), parameter :: xyz_testfile = 'test.xyz'
     character(len=*), parameter :: trr_testfile = 'test.trr'
     character(len=*), parameter :: info = "xyz info"
-    character(len=*), parameter :: atom_name(*) = ['A  ', 'BB ', 'CCC', 'DDD']
-    integer, parameter :: natoms = size(atom_name)
+    integer, parameter :: natoms = 4
+    character(len=*), parameter :: atom_name(natoms) = ['A  ', 'BB ', 'CCC', 'DDD']
     integer, parameter :: optdata_dim = 6
     real(rk) :: box(dimn, dimn)
     real(rk) :: pos(dimn, natoms), vel(dimn, natoms), frc(dimn, natoms)
@@ -232,13 +232,7 @@ contains
         use trjfort, only: trrfile, mode_read
         implicit none
         type(trrfile) :: f
-        integer :: step
-        real(rk) :: time, lambda
         character(len=*), parameter :: name = "trrfile_read"
-
-        step = 5
-        time = 0.010
-        lambda = 0.8
 
         call prep_test
         call f%open(trr_testfile, mode_read)

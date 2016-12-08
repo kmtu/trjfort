@@ -229,7 +229,7 @@ contains
         class(trrfile), intent(inout) :: trr
         integer, intent(in) :: natoms, step
         real(rk), intent(in) :: time, lambda
-        real(rk), intent(in), optional :: box(dimn, dimn), pos(*), vel(*), frc(*)
+        real(rk), intent(in), optional :: box(dimn, dimn), pos(:, :), vel(:, :), frc(:, :)
 
         trr%stat = write_trr(trr%xd, natoms, step, time, lambda, box, pos, vel, frc)
     end subroutine
