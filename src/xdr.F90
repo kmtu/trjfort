@@ -18,7 +18,7 @@ module xdr
         character :: mode
         integer(c_int) :: natoms, step, stat
     contains
-        procedure :: init => init_xdr
+        procedure :: open => open_xdr
         procedure :: close => close_xdr
     end type
 
@@ -32,7 +32,7 @@ module xdr
     ! time    - time of the configuration
     ! xd      - pointer from libxdrfile.
 
-    ! should always call init first. then call read in a loop and do your
+    ! should always call open first. then call read in a loop and do your
     ! calculations. after the loops call close.
     type, extends(trjfile), public :: xtcfile
         real(c_float) :: box(dimn, dimn), time
@@ -134,7 +134,7 @@ module xdr
 
 contains
     ! our wrappers for the trjfile class
-    subroutine init_xdr(this, filename_in, mode_opt)
+    subroutine open_xdr(this, filename_in, mode_opt)
         use, intrinsic :: iso_c_binding, only: c_null_char, c_f_pointer
         implicit none
         class(trjfile), intent(inout) :: this

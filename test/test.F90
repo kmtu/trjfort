@@ -82,7 +82,7 @@ contains
         type(xyzfile) :: f
         character(len=*), parameter :: name = "xyzfile_write"
 
-        call f%init(xyz_testfile, 'w')
+        call f%open(xyz_testfile, 'w')
         call f%write(pos)
         call assert(f%stat == 0, name, "f%stat = "//trim(num2str(f%stat)))
         call f%close
@@ -94,7 +94,7 @@ contains
         type(xyzfile) :: f
         character(len=*), parameter :: name = "xyzfile_read_natoms"
 
-        call f%init(xyz_testfile, mode_read)
+        call f%open(xyz_testfile, mode_read)
         call assert(f%natoms == natoms, name)
         call f%close
     end subroutine
@@ -105,7 +105,7 @@ contains
         type(xyzfile) :: f
         character(len=*), parameter :: name = "xyzfile_read"
 
-        call f%init(xyz_testfile, mode_read)
+        call f%open(xyz_testfile, mode_read)
         call f%read
         call assert(trim(f%info) == "XYZ", name//" - info", "info: "//trim(f%info))
 
@@ -125,7 +125,7 @@ contains
         type(xyzfile) :: f
         character(len=*), parameter :: name = "xyzfile_write2"
 
-        call f%init(xyz_testfile, 'w')
+        call f%open(xyz_testfile, 'w')
         call f%write(pos, info=info, atom_name=atom_name,&
                     &optdata=optdata)
         call assert(f%stat == 0, name, "f%stat = "//trim(num2str(f%stat)))
@@ -138,7 +138,7 @@ contains
         type(xyzfile) :: f
         character(len=*), parameter :: name = "xyzfile_read2"
 
-        call f%init(xyz_testfile, mode_read, optdata_dim)
+        call f%open(xyz_testfile, mode_read, optdata_dim)
         call f%read
         call assert(f%info == info, name//" - info", "info: "//trim(f%info))
 
@@ -178,7 +178,7 @@ contains
         time = 0.010
         lambda = 0.8
 
-        call f%init(trr_testfile, mode_write)
+        call f%open(trr_testfile, mode_write)
         call f%write(natoms, step, time, lambda, box, pos)
         call assert(f%stat == 0, name, "f%stat = "//trim(num2str(f%stat)))
         call f%close
@@ -196,7 +196,7 @@ contains
         time = 0.010
         lambda = 0.8
 
-        call f%init(trr_testfile, mode_read)
+        call f%open(trr_testfile, mode_read)
         call f%read
         call assert(f%step == step, name//" - step")
         call assert(f%time == time, name//" - time")
@@ -222,7 +222,7 @@ contains
         time = 0.010
         lambda = 0.8
 
-        call f%init(trr_testfile, mode_write)
+        call f%open(trr_testfile, mode_write)
         call f%write(natoms, step, time, lambda, box, vel=vel, frc=frc)
         call assert(f%stat == 0, name, "f%stat = "//trim(num2str(f%stat)))
         call f%close
@@ -241,7 +241,7 @@ contains
         lambda = 0.8
 
         call prep_test
-        call f%init(trr_testfile, mode_read)
+        call f%open(trr_testfile, mode_read)
         call f%read
         call assert(f%vel(1, 1) == vel(1, 1), name//" - vel(1, 1) ", &
                    &"vel(1, 1): "//trim(num2str(f%vel(1, 1))))

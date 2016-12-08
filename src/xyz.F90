@@ -18,14 +18,14 @@ module xyz
         character(len=atom_name_len), allocatable :: atom_name(:)
 
     contains
-        procedure :: init
+        procedure :: open
         procedure :: read
         procedure :: write
         procedure :: close
     end type
 
 contains
-    subroutine init(this, file, mode, optdata_dim)
+    subroutine open(this, file, mode, optdata_dim)
         implicit none
         class(xyzfile) :: this
         character (len=*), intent(in), optional :: file
