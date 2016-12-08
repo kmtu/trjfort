@@ -127,7 +127,7 @@ module xdr
             type(xdrfile), intent(in) :: xd
             integer(c_int), intent(in), value :: natoms, step
             real(c_rk), intent(in), value :: time, lambda
-            real(c_rk), intent(in), optional :: box(*), x(*), v(*), f(*)
+            type(c_ptr), intent(in), value :: box, x, v, f
         end function
 
     end interface
@@ -225,13 +225,39 @@ contains
     end subroutine
 
     subroutine write_trrfile(trr, natoms, step, time, lambda, box, pos, vel, frc)
+        use, intrinsic :: iso_c_binding, only: c_loc, c_null_ptr
         implicit none
         class(trrfile), intent(inout) :: trr
         integer, intent(in) :: natoms, step
         real(rk), intent(in) :: time, lambda
-        real(rk), intent(in), optional :: box(dimn, dimn), pos(:, :), vel(:, :), frc(:, :)
+        real(rk), intent(in), target, optional :: box(dimn, dimn), pos(:, :), vel(:, :), frc(:, :)
+        type(c_ptr) :: box_ptr, pos_ptr, vel_ptr, frc_ptr
 
-        trr%stat = write_trr(trr%xd, natoms, step, time, lambda, box, pos, vel, frc)
+        if (present(box)) then
+            box_ptr = c_loc(box)
+        else
+            box_ptr = c_null_ptr
+        end if
+
+        if (present(pos)) then
+            pos_ptr = c_loc(pos)
+        else
+            pos_ptr = c_null_ptr
+        end if
+
+        if (present(vel)) then
+            vel_ptr = c_loc(vel)
+        else
+            vel_ptr = c_null_ptr
+        end if
+
+        if (present(frc)) then
+            frc_ptr = c_loc(frc)
+        else
+            frc_ptr = c_null_ptr
+        end if
+
+        trr%stat = write_trr(trr%xd, natoms, step, time, lambda, box_ptr, pos_ptr, vel_ptr, frc_ptr)
     end subroutine
 
     subroutine close_xdr(this)
